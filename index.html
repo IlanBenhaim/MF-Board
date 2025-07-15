@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFounders - Board Meeting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        .presentation-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            overflow-y: auto;
+        }
+        
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .slide.prev {
+            transform: translateX(-100%);
+        }
+        
+        .color-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 12px;
+            height: 100%;
+            z-index: 10;
+        }
+        
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-left: 20px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 900;
+            color: #9370DB;
+        }
+        
+        .slide-content {
+            flex: 1;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        
+        .slide-title {
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        
+        .slide-subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .stat-item {
+            background: linear-gradient(135deg, #f8f4ff 0%, #f0ebff 100%);
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            border: 2px solid #e0d4f7;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(147, 112, 219, 0.2);
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 900;
+            color: #9370DB;
+            margin-bottom: 6px;
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: #333;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        
+        .navigation {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: 40px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: #9370DB;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-btn:hover {
+            background: #7B68EE;
+            transform: scale(1.05);
+        }
+        
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+        
+        .slide-counter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-weight: 600;
+            padding: 0 12px;
+            font-size: 13px;
+        }
+        
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: #9370DB;
+            transition: width 0.6s ease;
+            z-index: 1001;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin: 18px 0;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+            border-left: 3px solid #9370DB;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #f0ebff 0%, #e6d9ff 100%);
+            border-radius: 10px;
+            padding: 18px;
+            margin: 18px 0;
+            border-left: 3px solid #9370DB;
+        }
+        
+        .text-content {
+            font-size: 15px;
+            line-height: 1.4;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        
+        .key-points {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .key-points li {
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+        
+        .key-points li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #9370DB;
+            font-weight: bold;
+        }
+        
+        .chart-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 18px auto;
+            height: 280px;
+        }
+        
+        .email-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin: 18px 0;
+        }
+        
+        .email-item {
+            background: #f8f4ff;
+            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid #e0d4f7;
+            transition: all 0.3s ease;
+        }
+        
+        .email-item:hover {
+            background: #f0ebff;
+            border-color: #9370DB;
+            transform: translateY(-1px);
+        }
+        
+        .email-alias {
+            font-size: 13px;
+            font-weight: 700;
+            color: #9370DB;
+            margin-bottom: 3px;
+        }
+        
+        .email-forward {
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .objectives-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 18px 0;
+        }
+        
+        .objective-column {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .objective-column h3 {
+            color: #9370DB;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .objective-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+        
+        .objective-item:last-child {
+            border-bottom: none;
+        }
+        
+        .objective-number {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            background: #9370DB;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 22px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .slide {
+                padding: 15px;
+            }
+            
+            .slide-title {
+                font-size: 24px;
+            }
+            
+            .slide-subtitle {
+                font-size: 14px;
+            }
+            
+            .section-title {
+                font-size: 22px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .objectives-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navigation {
+                bottom: 15px;
+                padding: 8px 15px;
+            }
+            
+            .nav-btn {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <div class="presentation-container">
+        <!-- Slide 1: Page de titre -->
+        <div class="slide active" data-color="#9370DB">
+            <div class="color-bar" style="background-color: #9370DB;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h1 class="slide-title" style="color: #9370DB;">Board Meeting MFounders</h1>
+                <p class="slide-subtitle">Juillet 2025 - Bilan et perspectives</p>
+                <div class="highlight-box">
+                    <p class="text-content">Présentation du premier board structuré de MFounders avec bilan d'activité, gouvernance et orientations stratégiques.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Agenda -->
+        <div class="slide" data-color="#9370DB">
+            <div class="color-bar" style="background-color: #9370DB;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #9370DB;">Agenda</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #9370DB; margin-bottom: 12px;">1. Introduction & Objectifs</h3>
+                        <ul class="key-points">
+                            <li>Bienvenue et contexte</li>
+                            <li>Mission de MFounders</li>
+                            <li>Objectifs du board</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #0000FF; margin-bottom: 12px;">2. Chiffres clés & Activité</h3>
+                        <ul class="key-points">
+                            <li>Activité générale</li>
+                            <li>Membres et recrutement</li>
+                            <li>Statistiques de parrainage</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">3. Gouvernance</h3>
+                        <ul class="key-points">
+                            <li>Bureau exécutif & CA</li>
+                            <li>Répartition des rôles</li>
+                            <li>Comité d'investissement</li>
+                            <li>Outils opérationnels</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #32CD32; margin-bottom: 12px;">4. Recrutement</h3>
+                        <ul class="key-points">
+                            <li>Objectifs et cible</li>
+                            <li>Nouvelle stratégie</li>
+                            <li>Implication stratégique</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FF6347; margin-bottom: 12px;">5. Business Model</h3>
+                        <ul class="key-points">
+                            <li>Modèle économique</li>
+                            <li>Structure des frais</li>
+                            <li>Projections financières</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">6. Dealflow</h3>
+                        <ul class="key-points">
+                            <li>Objectifs sourcing</li>
+                            <li>Diversification</li>
+                            <li>Pipeline structuré</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">7. Points de décision</h3>
+                        <ul class="key-points">
+                            <li>Revue du CA</li>
+                            <li>Approbation budget</li>
+                            <li>Assiduité et clôture</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Introduction partie 1 -->
+        <div class="slide" data-color="#9370DB">
+            <div class="color-bar" style="background-color: #9370DB;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #9370DB;">1.1 Bienvenue à tous au board de MFounders</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">deals finalisés</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">53</div>
+                        <div class="stat-label">membres au total</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">37</div>
+                        <div class="stat-label">membres actifs (70%)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">1 194 993 €</div>
+                        <div class="stat-label">montant levé</div>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">Nous avons annoncé le lancement de MFounders en juillet dernier et démarré officiellement en octobre. Aujourd'hui, en juillet, moins d'un an après, nous avons changé d'échelle.</p>
+                    <p class="text-content">Ce board est l'occasion de faire un point d'étape structurant et de poser les bases d'une gouvernance transparente, saine et claire pour accompagner MFounders dans sa croissance future.</p>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content"><strong>Les membres actifs adhèrent pleinement et les startups accompagnées sont ultra fans du principe d'accompagnement.</strong> Elles voient une valeur ajoutée significative par rapport à un fonds classique, grâce à l'expertise et au réseau apportés par MFounders.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Introduction partie 2 -->
+        <div class="slide" data-color="#9370DB">
+            <div class="color-bar" style="background-color: #9370DB;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #9370DB;">1.2 Mission de MFounders</h2>
+                <div class="highlight-box">
+                    <p class="text-content" style="font-size: 20px; text-align: center; font-weight: 600;">Accompagner les startups en phase d'amorçage avec l'expertise et le réseau de nos membres investisseurs</p>
+                </div>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #9370DB; margin-bottom: 12px;">Gouvernance structurée</h3>
+                        <ul class="key-points">
+                            <li>Désormais, un comité de pilotage tous les mois</li>
+                            <li>Et un board tous les trois mois</li>
+                            <li>Avec un compte rendu systématique partagé à tous les administrateurs absents</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #9370DB; margin-bottom: 12px;">Valeur ajoutée unique</h3>
+                        <ul class="key-points">
+                            <li>Expertise sectorielle diversifiée</li>
+                            <li>Réseau d'entrepreneurs expérimentés</li>
+                            <li>Accompagnement personnalisé post-investissement</li>
+                            <li>Accès privilégié aux opportunités</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Objectifs du board -->
+        <div class="slide" data-color="#9370DB">
+            <div class="color-bar" style="background-color: #9370DB;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #9370DB;">1.3 Objectifs du board d'aujourd'hui</h2>
+                <div class="objectives-grid">
+                    <div class="objective-column">
+                        <h3>Bloc 1-4</h3>
+                        <div class="objective-item">
+                            <span class="objective-number">1</span>
+                            Faire un point d'étape structurant sur l'activité et les résultats
+                        </div>
+                        <div class="objective-item">
+                            <span class="objective-number">2</span>
+                            Présenter les chiffres clés d'activité et de performance
+                        </div>
+                        <div class="objective-item">
+                            <span class="objective-number">3</span>
+                            Valider l'organisation, la gouvernance et les processus
+                        </div>
+                        <div class="objective-item">
+                            <span class="objective-number">4</span>
+                            Approuver le budget, les projections et la structure de coûts
+                        </div>
+                    </div>
+                    <div class="objective-column">
+                        <h3>Bloc 5-7</h3>
+                        <div class="objective-item">
+                            <span class="objective-number">5</span>
+                            Définir la stratégie de recrutement et les objectifs membres
+                        </div>
+                        <div class="objective-item">
+                            <span class="objective-number">6</span>
+                            Structurer le sourcing, le dealflow et les partenariats
+                        </div>
+                        <div class="objective-item">
+                            <span class="objective-number">7</span>
+                            Poser les bases d'une croissance saine et durable
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Activité générale -->
+        <div class="slide" data-color="#0000FF">
+            <div class="color-bar" style="background-color: #0000FF;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #0000FF;">2.1 Activité générale</h2>
+                <p class="slide-subtitle">Bilan opérationnel janvier-juin 2025</p>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">12</div>
+                        <div class="stat-label">Sessions de pitch MP0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">47</div>
+                        <div class="stat-label">Startups analysées</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">5</div>
+                        <div class="stat-label">Deals finalisés</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">1</div>
+                        <div class="stat-label">Comité hebdomadaire</div>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content"><strong>Résultats des sessions MP0 :</strong> Les 12 sessions de pitch MP0 organisées ont permis d'analyser 47 startups et de finaliser 5 deals. Ces startups analysées reflètent les dossiers MP0 traités de janvier à juin 2025.</p>
+                    <p class="text-content"><strong>Partenariats en développement :</strong> Nous avons amorcé des échanges avec 14 structures de l'écosystème, dans le cadre du développement des partenariats MFounders. Parmi elles : Open StartUp, Renew Capital, CDG Invest, Nine58, Startup Garage, Startup Maroc, Technopark, French Tech Maroc, Impact Lab, La Startup Station, UM6P Ventures, UM6P France, Plug & Play et Sb3S.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Membres -->
+        <div class="slide" data-color="#0000FF">
+            <div class="color-bar" style="background-color: #0000FF;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #0000FF;">2.2 Membres</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">53</div>
+                        <div class="stat-label">membres au total</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">37</div>
+                        <div class="stat-label">membres ont déjà investi (70%)</div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #0000FF; margin-bottom: 12px;">Répartition géographique</h3>
+                        <ul class="key-points">
+                            <li>Maroc : 20 membres (38%)</li>
+                            <li>Europe : 22 membres (41%)</li>
+                            <li>Reste du monde : 11 membres (21%)</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #0000FF; margin-bottom: 12px;">Répartition par genre</h3>
+                        <ul class="key-points">
+                            <li>Femmes : 13 membres (25%)</li>
+                            <li>Hommes : 40 membres (75%)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="membersChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Dealflow & Budget -->
+        <div class="slide" data-color="#0000FF">
+            <div class="color-bar" style="background-color: #0000FF;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #0000FF;">2.3 Dealflow & Budget</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #0000FF; margin-bottom: 12px;">Nouveau modèle de recrutement</h3>
+                        <ul class="key-points">
+                            <li>Processus de sélection renforcé</li>
+                            <li>Critères d'éligibilité clarifiés</li>
+                            <li>Onboarding structuré</li>
+                            <li>Suivi de l'engagement</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #0000FF; margin-bottom: 12px;">Budget opérationnel</h3>
+                        <ul class="key-points">
+                            <li>Burn mensuel : 13-14k€</li>
+                            <li>Équipe : 10k€/mois</li>
+                            <li>Primes variables : 3k€/mois</li>
+                            <li>Frais généraux : 1k€/mois</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Statistiques de parrainage -->
+        <div class="slide" data-color="#0000FF">
+            <div class="color-bar" style="background-color: #0000FF;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #0000FF;">2.4 Statistiques de parrainage</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">24%</div>
+                        <div class="stat-label">Taux de conversion Board Members<br>(166 candidats → 40 membres)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">26%</div>
+                        <div class="stat-label">Taux de conversion Membres<br>(23 candidats → 6 membres)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">1%</div>
+                        <div class="stat-label">Taux de conversion Open Houses<br>(79 candidats → 1 membre)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #0000FF;">13.4%</div>
+                        <div class="stat-label">Taux de conversion global<br>(395 candidats → 53 membres)</div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #0000FF; margin-bottom: 12px;">Top Board Members (parrainage)</h3>
+                        <ul class="key-points">
+                            <li>Ilan Behnaim : 87 → 26 (30%)</li>
+                            <li>Youssef Agoumi : 15 → 4 (27%)</li>
+                            <li>Fayçal Hajji : 8 → 3 (38%)</li>
+                            <li>Adil Lekrafi : 6 → 2 (33%)</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #0000FF; margin-bottom: 12px;">Insights clés</h3>
+                        <ul class="key-points">
+                            <li>Le parrainage personnel est très efficace (24-26%)</li>
+                            <li>Les Open Houses ont un très faible taux (1%)</li>
+                            <li>Les board members actifs ont les meilleurs résultats</li>
+                            <li>Total : 395 candidats pour 53 membres</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Bureau exécutif & CA -->
+        <div class="slide" data-color="#FFD700">
+            <div class="color-bar" style="background-color: #FFD700;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #FFD700;">3.1 Bureau exécutif & Conseil d'administration</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Bureau exécutif</h3>
+                        <ul class="key-points">
+                            <li>Président : Ilan Behnaim</li>
+                            <li>Vice-Président : Youssef Agoumi</li>
+                            <li>Secrétaire Général : Adil Lekrafi</li>
+                            <li>Trésorier : Fayçal Hajji</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Conseil d'administration</h3>
+                        <p class="text-content"><strong>14 membres</strong> représentant la diversité de l'écosystème entrepreneurial et d'investissement.</p>
+                        <ul class="key-points">
+                            <li>Entrepreneurs expérimentés</li>
+                            <li>Investisseurs institutionnels</li>
+                            <li>Experts sectoriels</li>
+                            <li>Représentants géographiques</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">Le conseil d'administration assure la gouvernance stratégique et la supervision des activités de MFounders, avec des réunions trimestrielles et un suivi mensuel via le comité de pilotage.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Répartition des rôles -->
+        <div class="slide" data-color="#FFD700">
+            <div class="color-bar" style="background-color: #FFD700;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #FFD700;">3.2 Répartition des rôles dans l'équipe</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Direction générale</h3>
+                        <ul class="key-points">
+                            <li>Stratégie et vision</li>
+                            <li>Relations investisseurs</li>
+                            <li>Partenariats stratégiques</li>
+                            <li>Représentation externe</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Opérations</h3>
+                        <ul class="key-points">
+                            <li>Gestion du dealflow</li>
+                            <li>Animation des comités</li>
+                            <li>Suivi des investissements</li>
+                            <li>Coordination équipe</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Développement</h3>
+                        <ul class="key-points">
+                            <li>Sourcing et prospection</li>
+                            <li>Relations startups</li>
+                            <li>Événements et networking</li>
+                            <li>Communication</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Support</h3>
+                        <ul class="key-points">
+                            <li>Administration</li>
+                            <li>Comptabilité et finance</li>
+                            <li>Juridique et compliance</li>
+                            <li>Outils et systèmes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Comité d'investissement -->
+        <div class="slide" data-color="#FFD700">
+            <div class="color-bar" style="background-color: #FFD700;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #FFD700;">3.3 Composition du comité d'investissement</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FFD700;">3</div>
+                        <div class="stat-label">Fonds d'investissement</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FFD700;">Majorité</div>
+                        <div class="stat-label">Business Angels</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FFD700;">0</div>
+                        <div class="stat-label">Accélérateurs actuellement</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FFD700;">Quelques</div>
+                        <div class="stat-label">Experts indépendants</div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Fonds partenaires</h3>
+                        <ul class="key-points">
+                            <li>Fonds institutionnels spécialisés</li>
+                            <li>Expertise sectorielle complémentaire</li>
+                            <li>Co-investissement structuré</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Business Angels</h3>
+                        <ul class="key-points">
+                            <li>Entrepreneurs expérimentés</li>
+                            <li>Expertise opérationnelle</li>
+                            <li>Réseau et accompagnement</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="committeeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Outils & stack opérationnelle -->
+        <div class="slide" data-color="#FFD700">
+            <div class="color-bar" style="background-color: #FFD700;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #FFD700;">3.4 Outils & stack opérationnelle</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">CRM & Dealflow</h3>
+                        <ul class="key-points">
+                            <li>Gestion centralisée des prospects</li>
+                            <li>Suivi du pipeline d'investissement</li>
+                            <li>Historique des interactions</li>
+                            <li>Reporting automatisé</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Communication</h3>
+                        <ul class="key-points">
+                            <li>Plateforme collaborative</li>
+                            <li>Messagerie intégrée</li>
+                            <li>Visioconférence</li>
+                            <li>Partage de documents</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Gestion financière</h3>
+                        <ul class="key-points">
+                            <li>Comptabilité en temps réel</li>
+                            <li>Suivi des investissements</li>
+                            <li>Reporting financier</li>
+                            <li>Conformité réglementaire</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FFD700; margin-bottom: 12px;">Analyse & BI</h3>
+                        <ul class="key-points">
+                            <li>Tableaux de bord interactifs</li>
+                            <li>Métriques de performance</li>
+                            <li>Analyse prédictive</li>
+                            <li>Benchmarking</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: Objectifs et cible prioritaire -->
+        <div class="slide" data-color="#32CD32">
+            <div class="color-bar" style="background-color: #32CD32;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #32CD32;">4.1 Objectifs et cible prioritaire (150 membres)</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #32CD32;">150</div>
+                        <div class="stat-label">Objectif membres 2025</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #32CD32;">97</div>
+                        <div class="stat-label">Membres à recruter</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #32CD32;">65%</div>
+                        <div class="stat-label">Taux d'engagement cible</div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #32CD32; margin-bottom: 12px;">Profils prioritaires</h3>
+                        <ul class="key-points">
+                            <li>Entrepreneurs ayant levé +1M€</li>
+                            <li>C-level dans scale-ups</li>
+                            <li>Investisseurs expérimentés</li>
+                            <li>Experts sectoriels reconnus</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #32CD32; margin-bottom: 12px;">Critères de sélection</h3>
+                        <ul class="key-points">
+                            <li>Expérience entrepreneuriale</li>
+                            <li>Capacité d'investissement</li>
+                            <li>Réseau et expertise</li>
+                            <li>Disponibilité pour l'accompagnement</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">L'objectif de 150 membres permettra d'atteindre une masse critique pour diversifier les investissements et renforcer l'accompagnement des startups.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: Nouvelle stratégie et positionnement -->
+        <div class="slide" data-color="#32CD32">
+            <div class="color-bar" style="background-color: #32CD32;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #32CD32;">4.2 Nouvelle stratégie et positionnement</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #32CD32; margin-bottom: 12px;">Stratégie de recrutement</h3>
+                        <ul class="key-points">
+                            <li>Parrainage par les membres existants</li>
+                            <li>Événements sectoriels ciblés</li>
+                            <li>Partenariats avec écosystèmes</li>
+                            <li>Communication digitale renforcée</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #32CD32; margin-bottom: 12px;">Positionnement unique</h3>
+                        <ul class="key-points">
+                            <li>Club d'investisseurs entrepreneurs</li>
+                            <li>Accompagnement post-investissement</li>
+                            <li>Réseau international</li>
+                            <li>Expertise sectorielle</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #32CD32; margin-bottom: 12px;">Processus d'onboarding</h3>
+                        <ul class="key-points">
+                            <li>Entretien de qualification</li>
+                            <li>Présentation aux membres</li>
+                            <li>Période d'intégration</li>
+                            <li>Formation aux processus</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #32CD32; margin-bottom: 12px;">Suivi de l'engagement</h3>
+                        <ul class="key-points">
+                            <li>Participation aux comités</li>
+                            <li>Investissements réalisés</li>
+                            <li>Accompagnement fourni</li>
+                            <li>Parrainage de nouveaux membres</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: Implication et importance stratégique -->
+        <div class="slide" data-color="#32CD32">
+            <div class="color-bar" style="background-color: #32CD32;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #32CD32;">4.3 Implication et importance stratégique</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #32CD32; margin-bottom: 12px;">Impact sur le dealflow</h3>
+                        <ul class="key-points">
+                            <li>Plus de sources de deals</li>
+                            <li>Diversification sectorielle</li>
+                            <li>Couverture géographique élargie</li>
+                            <li>Qualité des opportunités</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #32CD32; margin-bottom: 12px;">Renforcement de l'accompagnement</h3>
+                        <ul class="key-points">
+                            <li>Expertise sectorielle renforcée</li>
+                            <li>Réseau de mentors élargi</li>
+                            <li>Accès aux marchés</li>
+                            <li>Support opérationnel</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content"><strong>Enjeu stratégique :</strong> Le passage à 150 membres permettra de structurer MFounders comme un acteur de référence de l'investissement en amorçage, avec une capacité d'investissement et d'accompagnement significativement renforcée.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: Modèle économique et revenus -->
+        <div class="slide" data-color="#FF6347">
+            <div class="color-bar" style="background-color: #FF6347;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #FF6347;">5.1 Modèle économique et revenus</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #FF6347; margin-bottom: 12px;">Sources de revenus</h3>
+                        <ul class="key-points">
+                            <li>Cotisations annuelles membres</li>
+                            <li>Fees sur deals réalisés</li>
+                            <li>Services d'accompagnement</li>
+                            <li>Événements et formations</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FF6347; margin-bottom: 12px;">Modèle de fees</h3>
+                        <ul class="key-points">
+                            <li>Management fee : 2% annuel</li>
+                            <li>Carried interest : 20%</li>
+                            <li>Fees de structuration</li>
+                            <li>Services à la carte</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FF6347;">150k€</div>
+                        <div class="stat-label">Revenus annuels cibles</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FF6347;">160k€</div>
+                        <div class="stat-label">Coûts annuels</div>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">Le modèle économique vise l'équilibre financier avec une croissance progressive des revenus liée à l'augmentation du nombre de membres et des deals réalisés.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18: Structure des frais avec primes -->
+        <div class="slide" data-color="#FF6347">
+            <div class="color-bar" style="background-color: #FF6347;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #FF6347;">5.2 Structure des frais avec primes</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FF6347;">13-14k€</div>
+                        <div class="stat-label">Burn mensuel total</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FF6347;">10k€</div>
+                        <div class="stat-label">Salaires équipe</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FF6347;">3k€</div>
+                        <div class="stat-label">Primes variables</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FF6347;">1k€</div>
+                        <div class="stat-label">Frais généraux</div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #FF6347; margin-bottom: 12px;">Détail des primes variables</h3>
+                        <ul class="key-points">
+                            <li>Prime sur deals finalisés</li>
+                            <li>Prime sur recrutement membres</li>
+                            <li>Prime sur performance équipe</li>
+                            <li>Bonus objectifs trimestriels</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FF6347; margin-bottom: 12px;">Frais généraux</h3>
+                        <ul class="key-points">
+                            <li>Outils et logiciels</li>
+                            <li>Communication et marketing</li>
+                            <li>Événements et déplacements</li>
+                            <li>Frais administratifs</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="costsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 19: Projections financières -->
+        <div class="slide" data-color="#FF6347">
+            <div class="color-bar" style="background-color: #FF6347;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #FF6347;">5.3 Projections financières</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #FF6347; margin-bottom: 12px;">Horizon 12 mois</h3>
+                        <ul class="key-points">
+                            <li>150 membres (objectif)</li>
+                            <li>12 deals finalisés</li>
+                            <li>Équilibre financier atteint</li>
+                            <li>Réserves constituées</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #FF6347; margin-bottom: 12px;">Horizon 24 mois</h3>
+                        <ul class="key-points">
+                            <li>200+ membres</li>
+                            <li>20+ deals/an</li>
+                            <li>Rentabilité confirmée</li>
+                            <li>Expansion géographique</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FF6347;">200k€</div>
+                        <div class="stat-label">Revenus cibles 2026</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #FF6347;">180k€</div>
+                        <div class="stat-label">Coûts prévisionnels 2026</div>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">Les projections montrent une trajectoire vers la rentabilité avec une croissance maîtrisée des coûts et une diversification des sources de revenus.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 20: Objectifs et responsabilité sourcing -->
+        <div class="slide" data-color="#4682B4">
+            <div class="color-bar" style="background-color: #4682B4;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #4682B4;">6.1 Objectifs et responsabilité (12 deals/an)</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">12</div>
+                        <div class="stat-label">Deals cibles par an</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">1</div>
+                        <div class="stat-label">Deal par mois en moyenne</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">100+</div>
+                        <div class="stat-label">Startups à analyser</div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Responsabilités sourcing</h3>
+                        <ul class="key-points">
+                            <li>Identification des opportunités</li>
+                            <li>Qualification initiale</li>
+                            <li>Présentation en comité</li>
+                            <li>Suivi du pipeline</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Critères de sélection</h3>
+                        <ul class="key-points">
+                            <li>Phase d'amorçage (seed/pre-seed)</li>
+                            <li>Équipe expérimentée</li>
+                            <li>Marché adressable significatif</li>
+                            <li>Traction démontrée</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">L'objectif de 12 deals par an nécessite un sourcing structuré et une qualification rigoureuse pour maintenir la qualité du portefeuille.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 21: Diversification et nouvelles actions -->
+        <div class="slide" data-color="#4682B4">
+            <div class="color-bar" style="background-color: #4682B4;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #4682B4;">6.2 Diversification et nouvelles actions</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Diversification sectorielle</h3>
+                        <ul class="key-points">
+                            <li>Fintech et services financiers</li>
+                            <li>Healthtech et biotechnologies</li>
+                            <li>Cleantech et développement durable</li>
+                            <li>Edtech et formation</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Nouvelles actions</h3>
+                        <ul class="key-points">
+                            <li>Partenariats avec incubateurs</li>
+                            <li>Événements de sourcing</li>
+                            <li>Programme de mentoring</li>
+                            <li>Veille technologique</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Expansion géographique</h3>
+                        <ul class="key-points">
+                            <li>Renforcement Maroc</li>
+                            <li>Développement Europe</li>
+                            <li>Exploration Afrique</li>
+                            <li>Veille internationale</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Outils de sourcing</h3>
+                        <ul class="key-points">
+                            <li>Plateforme de deal flow</li>
+                            <li>CRM intégré</li>
+                            <li>Analytics et reporting</li>
+                            <li>Réseau de scouts</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 22: Pipeline détaillé en 7 étapes -->
+        <div class="slide" data-color="#4682B4">
+            <div class="color-bar" style="background-color: #4682B4;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #4682B4;">6.3 Pipeline détaillé en 7 étapes</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Étapes 1-4 : Qualification</h3>
+                        <ul class="key-points">
+                            <li><strong>1. Dossiers reçus</strong> (via site ou recommandations réseau)</li>
+                            <li><strong>2. Qualification MP0</strong> : analyse initiale & pré-sélection</li>
+                            <li><strong>3. MP0 (Pitch)</strong> : présentation en comité d'investissement</li>
+                            <li><strong>4. MP0+</strong> : investigation avancée et validation</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Étapes 5-7 : Investissement</h3>
+                        <ul class="key-points">
+                            <li><strong>5. MP1</strong> : due diligence approfondie</li>
+                            <li><strong>6. MP2</strong> : négociation et structuration</li>
+                            <li><strong>7. Closing</strong> : finalisation et suivi post-investissement</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">100%</div>
+                        <div class="stat-label">Dossiers reçus</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">30%</div>
+                        <div class="stat-label">Qualification MP0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">15%</div>
+                        <div class="stat-label">Pitch MP0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">5%</div>
+                        <div class="stat-label">Deals finalisés</div>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">Le pipeline structuré en 7 étapes permet un suivi rigoureux et une optimisation continue du taux de conversion à chaque niveau.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 23: Revue du CA et rôle des administrateurs -->
+        <div class="slide" data-color="#4682B4">
+            <div class="color-bar" style="background-color: #4682B4;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #4682B4;">7.1 Revue du CA et rôle des administrateurs</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Missions du CA</h3>
+                        <ul class="key-points">
+                            <li>Validation de la stratégie</li>
+                            <li>Supervision financière</li>
+                            <li>Approbation des investissements majeurs</li>
+                            <li>Évaluation de la performance</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Rôle des administrateurs</h3>
+                        <ul class="key-points">
+                            <li>Conseil stratégique</li>
+                            <li>Réseau et business development</li>
+                            <li>Expertise sectorielle</li>
+                            <li>Représentation et ambassadorship</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">4</div>
+                        <div class="stat-label">Réunions CA par an</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">12</div>
+                        <div class="stat-label">Comités de pilotage</div>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">Le conseil d'administration joue un rôle clé dans la gouvernance et le développement stratégique de MFounders, avec un engagement actif de tous les membres.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 24: Approbation du budget et organisation -->
+        <div class="slide" data-color="#4682B4">
+            <div class="color-bar" style="background-color: #4682B4;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #4682B4;">7.2 Approbation du budget et organisation</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Budget 2025 à approuver</h3>
+                        <ul class="key-points">
+                            <li>Burn mensuel : 13-14k€</li>
+                            <li>Budget annuel : 160-170k€</li>
+                            <li>Investissements : 2-3M€</li>
+                            <li>Réserves de sécurité : 6 mois</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Organisation validée</h3>
+                        <ul class="key-points">
+                            <li>Structure de gouvernance</li>
+                            <li>Processus d'investissement</li>
+                            <li>Outils opérationnels</li>
+                            <li>Reporting et suivi</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">✓</div>
+                        <div class="stat-label">Budget approuvé</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="color: #4682B4;">✓</div>
+                        <div class="stat-label">Organisation validée</div>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">L'approbation du budget et de l'organisation marque une étape importante dans la structuration et la professionnalisation de MFounders.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 25: Assiduité et clôture -->
+        <div class="slide" data-color="#4682B4">
+            <div class="color-bar" style="background-color: #4682B4;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #4682B4;">7.3 Assiduité et clôture</h2>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Prochaines étapes</h3>
+                        <ul class="key-points">
+                            <li>Mise en œuvre des décisions</li>
+                            <li>Suivi des objectifs</li>
+                            <li>Reporting mensuel</li>
+                            <li>Prochain board en octobre</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 style="color: #4682B4; margin-bottom: 12px;">Engagement des membres</h3>
+                        <ul class="key-points">
+                            <li>Participation active aux comités</li>
+                            <li>Contribution au sourcing</li>
+                            <li>Accompagnement des startups</li>
+                            <li>Parrainage de nouveaux membres</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content">Merci à tous pour votre participation active et votre engagement. Ensemble, nous construisons l'avenir de l'investissement en amorçage.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide finale: One more thing -->
+        <div class="slide" data-color="#9370DB">
+            <div class="color-bar" style="background-color: #9370DB;"></div>
+            <div class="slide-header">
+                <div></div>
+                <div class="logo">MFounders</div>
+            </div>
+            <div class="slide-content">
+                <h2 class="section-title" style="color: #9370DB;">One more thing... @mfounders.vc</h2>
+                <p class="slide-subtitle">Adresses email professionnelles pour tous les administrateurs</p>
+                <div class="email-grid">
+                    <div class="email-item">
+                        <div class="email-alias">ilan@mfounders.vc</div>
+                        <div class="email-forward">→ ib@ibp.vc</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">adil@mfounders.vc</div>
+                        <div class="email-forward">→ adil.lekrafi@alfic.com</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">dounia@mfounders.vc</div>
+                        <div class="email-forward">→ dounia.boumehdi@mnf.vc</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">driss@mfounders.vc</div>
+                        <div class="email-forward">→ driss@cloudfret.com</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">faycal@mfounders.vc</div>
+                        <div class="email-forward">→ faycal@theunknown.tv</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">karim@mfounders.vc</div>
+                        <div class="email-forward">→ karimamor@epineon.ai</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">karima@mfounders.vc</div>
+                        <div class="email-forward">→ karima.alami@compass.com</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">mhamed@mfounders.vc</div>
+                        <div class="email-forward">→ mchahir@gmail.com</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">mahjoub@mfounders.vc</div>
+                        <div class="email-forward">→ mb@digitalfrance.org</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">mina@mfounders.vc</div>
+                        <div class="email-forward">→ mr@mfounders.com</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">rachid@mfounders.vc</div>
+                        <div class="email-forward">→ rachid.jettioui@hexagonedigitale.com</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">redouane@mfounders.vc</div>
+                        <div class="email-forward">→ redouane.labdoui@inventiv-it.fr</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">selwa@mfounders.vc</div>
+                        <div class="email-forward">→ selwa@keplintelligence.com</div>
+                    </div>
+                    <div class="email-item">
+                        <div class="email-alias">youssef@mfounders.vc</div>
+                        <div class="email-forward">→ youssefagoumi@gmail.com</div>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="text-content" style="text-align: center;"><strong>Fonctionnalités disponibles :</strong> Redirection automatique active • Boîte email complète sur demande • Accès IMAP/POP3 • Modification d'alias possible</p>
+                    <p class="text-content" style="text-align: center;">Contactez-nous pour modifier votre alias ou activer une boîte complète !</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">‹</button>
+        <div class="slide-counter">
+            <span id="currentSlide">1</span> / <span id="totalSlides">26</span>
+        </div>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">›</button>
+    </div>
+
+    <script>
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        document.getElementById('totalSlides').textContent = totalSlides;
+        
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index === currentSlideIndex) {
+                    slide.classList.add('active');
+                } else if (index < currentSlideIndex) {
+                    slide.classList.add('prev');
+                }
+            });
+            
+            document.getElementById('currentSlide').textContent = currentSlideIndex + 1;
+            document.getElementById('prevBtn').disabled = currentSlideIndex === 0;
+            document.getElementById('nextBtn').disabled = currentSlideIndex === totalSlides - 1;
+            
+            // Update progress bar
+            const progress = ((currentSlideIndex + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+        
+        function changeSlide(direction) {
+            const newIndex = currentSlideIndex + direction;
+            if (newIndex >= 0 && newIndex < totalSlides) {
+                currentSlideIndex = newIndex;
+                updateSlide();
+            }
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+        
+        // Touch navigation for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) changeSlide(1);
+            if (touchEndX > touchStartX + 50) changeSlide(-1);
+        }
+        
+        // Initialize charts when slides become active
+        function initializeCharts() {
+            // Members chart
+            const membersCtx = document.getElementById('membersChart');
+            if (membersCtx) {
+                new Chart(membersCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Maroc', 'Europe', 'Reste du monde'],
+                        datasets: [{
+                            data: [20, 22, 11],
+                            backgroundColor: ['#0000FF', '#4169E1', '#87CEEB']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Budget chart
+            const budgetCtx = document.getElementById('budgetChart');
+            if (budgetCtx) {
+                new Chart(budgetCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Salaires équipe', 'Primes variables', 'Frais généraux'],
+                        datasets: [{
+                            data: [10, 3, 1],
+                            backgroundColor: ['#0000FF', '#4169E1', '#87CEEB']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Committee chart
+            const committeeCtx = document.getElementById('committeeChart');
+            if (committeeCtx) {
+                new Chart(committeeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Fonds', 'Business Angels', 'Accélérateurs', 'Experts'],
+                        datasets: [{
+                            data: [3, 15, 0, 5],
+                            backgroundColor: ['#FFD700', '#FFA500', '#FF6347', '#FF4500']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Growth chart
+            const growthCtx = document.getElementById('growthChart');
+            if (growthCtx) {
+                new Chart(growthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Actuel', '6 mois', '12 mois', '18 mois', '24 mois'],
+                        datasets: [{
+                            label: 'Nombre de membres',
+                            data: [53, 80, 150, 175, 200],
+                            borderColor: '#32CD32',
+                            backgroundColor: 'rgba(50, 205, 50, 0.1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Costs chart
+            const costsCtx = document.getElementById('costsChart');
+            if (costsCtx) {
+                new Chart(costsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Salaires équipe', 'Primes variables', 'Frais généraux'],
+                        datasets: [{
+                            data: [10, 3, 1],
+                            backgroundColor: ['#FF6347', '#FF4500', '#FF8C00']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+        }
+        
+        // Initialize
+        updateSlide();
+        setTimeout(initializeCharts, 1000);
+    </script>
+</body>
+</html>
+
